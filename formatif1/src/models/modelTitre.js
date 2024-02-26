@@ -18,7 +18,7 @@ static requeteTitre = (params) =>{
                     console.log('error: ', err);
                     return reject(err);
                 }
-                console.log('Titres: ', res);
+                
                 return resolve(res);
             });
         });

@@ -1,49 +1,44 @@
 const modelTitre = require('../models/modelTitre.js');
+
+
 exports.afficherTitre = (req, res) => {
+
     const page = parseInt(req.query.page);
+
+    const offset = (page - 1) * 10;
+
+    var type_title = "";
 
     if (req.params.type_title === 'Film') {
-        req.params.type_title = 'Movie';
+        type_title = 'Movie';
     } else if (req.params.type_title === 'Série') {
-        req.params.type_title = 'TV Show';
+        type_title = 'TV Show';
     } else {
-        return res.status(400).send(`Le type ${req.params.type_title} est invalide`);
+        const message ={
+            message: `Le type ${req.params.type_title} est invalide`
+        }
+        return res.status(400).send(message);
     }
 
-    if(page < 1){
-        return res.status(400).send(`La page est invalide`);
+    if(page < 1 || !Number.isInteger(page)){
+        const message = {
+            message: 'La page est invalide'
+        }
+        return res.status(400).send(message);
     }
 
-    const params = [req.params.type_title, page];
+    const params = [type_title, offset];
 
-    console.log(params);
     modelTitre.requeteTitre(params)
         .then(result => {
-            return res.status(200).send(result);
-        })
-        .catch(error => {
-            return res.status(500).send(error);
-        });
-}
 
-exports.afficherTitre = (req, res) => {
-
-    
-    const page = parseInt(req.query.page);
-
-    if(req.params.type_title === 'Film'){
-        req.params.type_title = 'Movie';
-    }
-    else if(req.params.type_title === 'Série'){
-        req.params.type_title = 'TV Show';
-    }
-
-    const params = [req.params.type_title, page];
-
-    console.log(params);
-    modelTitre.requeteTitre(params)
-        .then(result => {
-            return res.status(200).send(result);
+            const reponse = {
+                titres: result.map(item =>({show_id:item.show_id,title:item.title})),
+                filtre: req.params.type_title,
+                page:page,
+                url_page_suivante: `/api/titres/${req.params.type_title}?page=${page+1}`
+            }
+            return res.status(200).send(reponse);
         })
         .catch(error => {
             return res.status(500).send(error);
